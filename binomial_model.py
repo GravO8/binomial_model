@@ -29,18 +29,19 @@ class Node(ABC):
         if pt not in already_ploted:
             already_ploted.append(pt)
             plt.plot(self.t, h, "o", color = "blue", alpha = .2, markersize = 40)
-            plt.annotate(str(round(self.s,1)), xy = (self.t,h+.08), ha = "center", va = "center")
+            plt.annotate(str(round(self.s,1)), xy = (self.t,h+.038*self.option.T+.01), ha = "center", va = "center")
+            if self.t < self.option.T:
+                plt.annotate("x={}".format(round(self.x,1)), xy = (self.t,h-.0065*self.option.T-.006), ha = "center", va = "center", size = "small")
+                plt.annotate("y={}".format(round(self.y,1)), xy = (self.t,h-.0415*self.option.T-.015), ha = "center", va = "center", size = "small")
+            else:
+                plt.annotate("payoff=\n{}".format(round(self.value,1)), xy = (self.t,h-.027*self.option.T-.018), ha = "center", va = "center", size = "small")
         if self.t < self.option.T:
-            plt.annotate("x={}".format(round(self.x,1)), xy = (self.t,h-.02), ha = "center", va = "center", size = "small")
-            plt.annotate("y={}".format(round(self.y,1)), xy = (self.t,h-.1), ha = "center", va = "center", size = "small")
             self.up.draw(plt, h+1, already_ploted)
             self.down.draw(plt, h-1, already_ploted)
             props = dict(arrowstyle = "-|>, head_width = 0.4, head_length = 0.8", shrinkA = 0, shrinkB = 0, color = "black")
             e = .0223*self.option.T - .0015
             plt.annotate("", xytext = (self.t+e,h+e), xy = (self.t+1-e,h+1), arrowprops = props)
             plt.annotate("", xytext = (self.t+e,h-e), xy = (self.t+1-e,h-1), arrowprops = props)
-        else:
-            plt.annotate("payoff=\n{}".format(self.value), xy = (self.t,h-.07), ha = "center", va = "center", size = "small")
 
 class Node0(Node):
     def __init__(self, option):
@@ -84,10 +85,13 @@ class Option(ABC):
             plt.tight_layout()
             plt.show()
         return self.price
-    def get_quick_maturity_price(self):
+    def get_martingale_probability(self):
         delta = self.u - self.d
         q_u = (1+self.R-self.d)/delta
         q_d = (self.u-(1+self.R))/delta
+        return q_u, q_d
+    def get_quick_maturity_price(self):
+        q_u, q_d = self.get_martingale_probability()
         self.price = (1 + self.R)**(-self.T)
         sum = 0
         for k in range(self.T+1):
@@ -104,6 +108,6 @@ class Call(Option):
         
         
 if __name__ == "__main__":
-    option = Call(2,110,0,100,1.2,.8)
+    option = Call(10,110,0,100,1.2,.8)
     print(option.get_maturity_price(True))
-    print(option.get_quick_maturity_price())
+    # print(option.get_quick_maturity_price())

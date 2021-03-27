@@ -1,5 +1,9 @@
 from abc import ABC, abstractmethod
 import matplotlib.pyplot as plt
+from math import factorial
+
+def C(n,r):
+    return factorial(n)/(factorial(r)*factorial(n-r))
 
 class Node(ABC):
     def __init__(self, option):
@@ -9,14 +13,14 @@ class Node(ABC):
         if self.value is not None:
             return self.value
         if self.t == self.option.T:
-            self.value = max(self.option.g(self.s),0)
+            self.value = self.option.g(self.s)
         else:
             self.up = UpNode(self.option, self)
             self.down = DownNode(self.option, self)
             delta = self.option.u - self.option.d
-            x = (1/(1+self.option.R))*(self.option.u*self.down.get_value() - self.option.d*self.up.get_value())/delta
-            y = (1/self.s)*(self.up.get_value() - self.down.get_value())/delta
-            self.value = x + y*self.s
+            self.x = (1/(1+self.option.R))*(self.option.u*self.down.get_value() - self.option.d*self.up.get_value())/delta
+            self.y = (1/self.s)*(self.up.get_value() - self.down.get_value())/delta
+            self.value = self.x + self.y*self.s
             if self.t < self.option.T-1:
                 self.up.down = self.down.up
         return self.value
@@ -25,15 +29,18 @@ class Node(ABC):
         if pt not in already_ploted:
             already_ploted.append(pt)
             plt.plot(self.t, h, "o", color = "blue", alpha = .2, markersize = 40)
-            text = str( round(self.s,1) )
-            plt.annotate(text, xy = (self.t,h), ha = "center", va = "center")
+            plt.annotate(str(round(self.s,1)), xy = (self.t,h+.08), ha = "center", va = "center")
         if self.t < self.option.T:
+            plt.annotate("x={}".format(round(self.x,1)), xy = (self.t,h-.02), ha = "center", va = "center", size = "small")
+            plt.annotate("y={}".format(round(self.y,1)), xy = (self.t,h-.1), ha = "center", va = "center", size = "small")
             self.up.draw(plt, h+1, already_ploted)
             self.down.draw(plt, h-1, already_ploted)
-            props = dict(arrowstyle="-|>,head_width=0.4,head_length=0.8",shrinkA=0,shrinkB=0,color="black")
-            e = .0277*self.option.T - .0015
+            props = dict(arrowstyle = "-|>, head_width = 0.4, head_length = 0.8", shrinkA = 0, shrinkB = 0, color = "black")
+            e = .0223*self.option.T - .0015
             plt.annotate("", xytext = (self.t+e,h+e), xy = (self.t+1-e,h+1), arrowprops = props)
             plt.annotate("", xytext = (self.t+e,h-e), xy = (self.t+1-e,h-1), arrowprops = props)
+        else:
+            plt.annotate("payoff=\n{}".format(self.value), xy = (self.t,h-.07), ha = "center", va = "center", size = "small")
 
 class Node0(Node):
     def __init__(self, option):
@@ -74,17 +81,29 @@ class Option(ABC):
             plt.xticks([i for i in range(self.T+1)], [i for i in range(self.T+1)])
             plt.yticks([],[])
             plt.xlabel("time")
+            plt.tight_layout()
             plt.show()
+        return self.price
+    def get_quick_maturity_price(self):
+        delta = self.u - self.d
+        q_u = (1+self.R-self.d)/delta
+        q_d = (self.u-(1+self.R))/delta
+        self.price = (1 + self.R)**(-self.T)
+        sum = 0
+        for k in range(self.T+1):
+            sum += (self.g(self.s0*(self.u**k)*(self.d**(self.T-k))) * C(self.T,k) * (q_u**k) * (q_d**(self.T-k)))
+        self.price *= sum
         return self.price
         
 class Put(Option):
     def g(self, asset_price):
-        return self.K - asset_price
+        return max(self.K - asset_price,0)
 class Call(Option):
     def g(self, asset_price):
-        return asset_price - self.K
+        return max(asset_price - self.K,0)
         
         
 if __name__ == "__main__":
-    option = Call(10,110,0,100,1.2,.8)
+    option = Call(2,110,0,100,1.2,.8)
     print(option.get_maturity_price(True))
+    print(option.get_quick_maturity_price())

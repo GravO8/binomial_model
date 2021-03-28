@@ -3,12 +3,12 @@
 The binomial model is a very simple model used to price options. It makes some assumptions about the price development of the underlying asset:
 
 - time is discreet and in equaly spaced intervals.
-- interest are only applied at the end of each time interval, i.e. they're computed as *<p>(1+R) <sup>K</sup> text.</p>* for *K​* intervals.
-- The underlying asset price will be up in the next interval with probability *p* ​and will be down with probability *(1 - p)​*.
-- When the price goes up, it always goes up by the same fraction *u​*.
-- Similarly, when the price price goes down, it always goes down by the same fraction *d​*.
+- interest are only applied at the end of each time interval, i.e. they're computed as *<p>(1+R) <sup>K</sup></p>* for *K* intervals.
+- The underlying asset price will be up in the next interval with probability *p* and will be down with probability *(1 - p)*.
+- When the price goes up, it always goes up by the same fraction *u*.
+- Similarly, when the price price goes down, it always goes down by the same fraction *d*.
 
-Furthermore, to avoid arbitrage situaitons we have to *R​* to be such that *d < 1+R <u​*.
+Furthermore, to avoid arbitrage situaitons we have to *R* to be such that *d < 1+R < u*.
 
 Check [wikipedia](https://en.wikipedia.org/wiki/Binomial_options_pricing_model) for more details.
 
@@ -42,7 +42,7 @@ This way of computing an option's price can be acessed with `get_quick_maturity_
 
 ## Interest rates
 
-An `Option` object can be created with a fixed interest rate by providing a single integer/float. But the binomial model is flexible enough to price options when $R$ is not the same from one time step to another, so you can also provide a list of interest rates to create a `Option` object. This list must have length equal to maturity, because each entry corresponds to the interest rate applied in a given interval.
+An `Option` object can be created with a fixed interest rate by providing a single integer/float. But the binomial model is flexible enough to price options when *R* is not the same from one time step to another, so you can also provide a list of interest rates to create a `Option` object. This list must have length equal to maturity, because each entry corresponds to the interest rate applied in a given interval.
 
 
 

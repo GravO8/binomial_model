@@ -91,7 +91,6 @@ class Option(ABC):
         q_d = (self.u-(1+self.R[t]))/delta
         return q_u, q_d
     def get_quick_maturity_price(self):
-        q_u, q_d = self.get_martingale_probability(0)
         self.price = 1
         q_u, q_d = [0]*self.T, [0]*self.T
         for t in range(self.T): 
@@ -119,7 +118,7 @@ class Call(Option):
         
 if __name__ == "__main__":
     call = Call(2,110,0,100,1.2,.8)
-    print(call.get_maturity_price(False))
+    print(call.get_maturity_price(True))
     print(call.get_quick_maturity_price())
 
     # put = Put(3,120,[0,.1,.2],80,1.5,.5)

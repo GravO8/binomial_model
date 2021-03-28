@@ -3,7 +3,7 @@
 The binomial model is a very simple model used to price options. It makes some assumptions about the price development of the underlying asset:
 
 - time is discreet and in equaly spaced intervals.
-- interest are only applied at the end of each time interval, i.e. they're computed as *<p>(1+R) <sup>K</sup></p>* for *K* intervals.
+- interest are only applied at the end of each time interval, i.e. they're computed as *(1+R) <sup>K</sup>* for *K* intervals.
 - The underlying asset price will be up in the next interval with probability *p* and will be down with probability *(1 - p)*.
 - When the price goes up, it always goes up by the same fraction *u*.
 - Similarly, when the price price goes down, it always goes down by the same fraction *d*.

@@ -1,9 +1,6 @@
 from abc import ABC, abstractmethod
 import matplotlib.pyplot as plt
-from math import factorial
-
-def C(n,r):
-    return factorial(n)/(factorial(r)*factorial(n-r))
+from itertools import combinations
 
 class Node(ABC):
     def __init__(self, option):
@@ -18,7 +15,7 @@ class Node(ABC):
             self.up = UpNode(self.option, self)
             self.down = DownNode(self.option, self)
             delta = self.option.u - self.option.d
-            self.x = (1/(1+self.option.R))*(self.option.u*self.down.get_value() - self.option.d*self.up.get_value())/delta
+            self.x = (1/(1+self.option.R[self.t]))*(self.option.u*self.down.get_value() - self.option.d*self.up.get_value())/delta
             self.y = (1/self.s)*(self.up.get_value() - self.down.get_value())/delta
             self.value = self.x + self.y*self.s
             if self.t < self.option.T-1:
@@ -62,13 +59,16 @@ class DownNode(Node):
         self.t = parent.t+1
         
 class Option(ABC):
-    def __init__(self, maturity, strike_price, interest_rate, s0, up_fraction, down_fraction):
-        self.T = maturity
-        self.K = strike_price
-        self.R = interest_rate
+    def __init__(self, maturity: int, strike_price: float, interest_rate, s0: float, up_fraction: float, down_fraction: float):
+        if type(interest_rate) in (float,int):
+            interest_rate = [interest_rate] * maturity
+        assert (type(interest_rate) == list and len(interest_rate) == maturity), "Option: interest_rate must be float, int or list with length equal to maturity"
+        self.T  = maturity
+        self.K  = strike_price
+        self.R  = interest_rate 
         self.s0 = s0
-        self.u = up_fraction
-        self.d = down_fraction
+        self.u  = up_fraction
+        self.d  = down_fraction
         self.node0 = Node0(self)
     @abstractmethod
     def g(self, asset_price):
@@ -85,17 +85,27 @@ class Option(ABC):
             plt.tight_layout()
             plt.show()
         return self.price
-    def get_martingale_probability(self):
+    def get_martingale_probability(self, t):
         delta = self.u - self.d
-        q_u = (1+self.R-self.d)/delta
-        q_d = (self.u-(1+self.R))/delta
+        q_u = (1+self.R[t]-self.d)/delta
+        q_d = (self.u-(1+self.R[t]))/delta
         return q_u, q_d
     def get_quick_maturity_price(self):
-        q_u, q_d = self.get_martingale_probability()
-        self.price = (1 + self.R)**(-self.T)
+        q_u, q_d = self.get_martingale_probability(0)
+        self.price = 1
+        q_u, q_d = [0]*self.T, [0]*self.T
+        for t in range(self.T): 
+            self.price *= (1/(1+self.R[t]))
+            q_u[t], q_d[t] = self.get_martingale_probability(t)
         sum = 0
+        indexes = [i for i in range(self.T)]
         for k in range(self.T+1):
-            sum += (self.g(self.s0*(self.u**k)*(self.d**(self.T-k))) * C(self.T,k) * (q_u**k) * (q_d**(self.T-k)))
+            paths = 0
+            for comb in combinations(indexes, k):
+                path = 1
+                for i in range(self.T): path *= q_u[i] if i in comb else q_d[i]
+                paths += path
+            sum += (self.g(self.s0*(self.u**k)*(self.d**(self.T-k))) * paths)
         self.price *= sum
         return self.price
         
@@ -108,6 +118,10 @@ class Call(Option):
         
         
 if __name__ == "__main__":
-    option = Call(10,110,0,100,1.2,.8)
-    print(option.get_maturity_price(True))
-    # print(option.get_quick_maturity_price())
+    call = Call(2,110,0,100,1.2,.8)
+    print(call.get_maturity_price(False))
+    print(call.get_quick_maturity_price())
+
+    # put = Put(3,120,[0,.1,.2],80,1.5,.5)
+    # print(put.get_maturity_price(False))
+    # print(put.get_quick_maturity_price())

@@ -123,7 +123,7 @@ class Option(ABC):
         self.price = self.node0.get_value()
         if draw:
             plt.figure(figsize = (20,7))
-            self.node0.draw(plt)
+            self.node0.draw(plt, 0, [])
             plt.xticks([i for i in range(self.T+1)], [i for i in range(self.T+1)])
             plt.yticks([],[])
             plt.xlabel("time")
@@ -174,17 +174,23 @@ class EuropeanPut(EuropeanOption, Put):
 class EuropeanCall(EuropeanOption, Call):
     pass
         
-if __name__ == "__main__":
-    maturity = 3
-    strike_price = 45
-    interest_rate = [.01,.02,.03]
-    s0 = 40
-    u =  1.3
-    d = .8
+if __name__ == "__main__":    
+    maturity        = 2
+    strike_price    = 110
+    interest_rate   = 0
+    s0              = 100
+    u               = 1.2
+    d               = .8
+    call = EuropeanCall(maturity, strike_price, interest_rate, s0, u, d)
+    print(call.get_maturity_price(True))
+    print(call.get_quick_maturity_price())
+    
+    maturity        = 3
+    strike_price    = 120
+    interest_rate   = 0
+    s0              = 80
+    u               = 1.5
+    d               = .5
     put = AmericanPut(maturity, strike_price, interest_rate, s0, u, d)
-    # print(call.get_maturity_price(True))
     print(put.get_maturity_price(True))
-
-    # put = Put(3,120,[0,.1,.2],80,1.5,.5)
-    # print(put.get_maturity_price(False))
-    # print(put.get_quick_maturity_price())
+    
